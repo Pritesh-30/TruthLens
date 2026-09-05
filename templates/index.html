@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TruthLens</title>
+
+  <style>
+    :root {
+      --bg: #050b16;
+      --card: rgba(7, 16, 30, 0.85);
+      --border: rgba(255, 255, 255, 0.08);
+      --accent: #22c55e;
+      --accent-dark: #15803d;
+      --danger: #f87171;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: "Segoe UI", "Fira Sans", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 20px;
+      background: radial-gradient(circle at top, #0f172a, #020617 65%);
+      color: var(--text);
+    }
+
+    .container {
+      width: min(720px, 100%);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 50px rgba(2, 6, 23, 0.8);
+      backdrop-filter: blur(12px);
+    }
+
+    .heading {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+
+    .subtext {
+      text-align: center;
+      color: var(--muted);
+      margin-bottom: 30px;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      margin-top: 18px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      color: #041006;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: .15s;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 25px rgba(34, 197, 94, .25);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 160px;
+      padding: 18px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.8);
+      color: var(--text);
+      resize: vertical;
+      font-size: 1rem;
+      margin-top: 18px;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, .2);
+    }
+
+    .news-card {
+      margin-top: 22px;
+      padding: 22px;
+      border-radius: 14px;
+      border: 1px solid rgba(250, 204, 21, .4);
+      background: rgba(250, 204, 21, .08);
+      line-height: 1.6;
+    }
+
+    .news-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .news-meta {
+      color: var(--muted);
+      font-size: .9rem;
+      margin-top: 8px;
+    }
+
+    .news-link {
+      display: inline-block;
+      margin-top: 10px;
+      color: #60a5fa;
+      text-decoration: none;
+      font-size: .95rem;
+    }
+
+    .news-link:hover {
+      text-decoration: underline;
+    }
+
+    .result-real,
+    .result-fake {
+      margin-top: 24px;
+      padding: 24px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+    }
+
+    .result-real {
+      background: rgba(34, 197, 94, .10);
+      border-color: rgba(34, 197, 94, .35);
+    }
+
+    .result-fake {
+      background: rgba(248, 113, 113, .10);
+      border-color: rgba(248, 113, 113, .35);
+    }
+
+    .result-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    .result-label .icon {
+      font-size: 1.6rem;
+    }
+
+    /* ── dual probability bars ────────────────────────────── */
+    .prob-section {
+      margin-top: 10px;
+    }
+
+    .prob-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+      font-size: .9rem;
+      color: var(--muted);
+    }
+
+    .prob-row strong {
+      color: var(--text);
+      font-size: .95rem;
+    }
+
+    .prob-bar {
+      width: 100%;
+      height: 10px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, .08);
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+
+    .prob-fill {
+      height: 100%;
+      border-radius: 6px;
+      transition: width .6s ease;
+    }
+
+    .fill-real {
+      background: linear-gradient(90deg, #22c55e, #4ade80);
+    }
+
+    .fill-fake {
+      background: linear-gradient(90deg, #f87171, #fca5a5);
+    }
+
+    /* ── explanation card ─────────────────────────────────── */
+    .explanation-card {
+      margin-top: 18px;
+      padding: 20px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, .03);
+    }
+
+    .explanation-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .explanation-title .icon {
+      font-size: 1.1rem;
+    }
+
+    .word-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .word-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: .88rem;
+      font-weight: 600;
+      letter-spacing: .02em;
+    }
+
+    .word-pill.real {
+      background: rgba(34, 197, 94, .15);
+      border: 1px solid rgba(34, 197, 94, .35);
+      color: #4ade80;
+    }
+
+    .word-pill.fake {
+      background: rgba(248, 113, 113, .15);
+      border: 1px solid rgba(248, 113, 113, .35);
+      color: #fca5a5;
+    }
+
+    .word-pill .arrow {
+      font-size: .75rem;
+      opacity: .7;
+    }
+
+    .result-warning {
+      margin-top: 24px;
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(250, 204, 21, .35);
+      background: rgba(250, 204, 21, .08);
+      font-weight: 600;
+      text-align: center;
+      color: #facc15;
+    }
+
+    /* ── Tabs ───────────────────────────────────────────── */
+    .brand {
+      text-align: center;
+      font-size: 2.1rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin: 0 0 4px;
+    }
+
+    .brand span { color: var(--accent); }
+
+    .brand-sub {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.92rem;
+      margin: 0 0 26px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 6px;
+      padding: 6px;
+      margin-bottom: 28px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      width: auto;
+      margin: 0;
+      padding: 12px 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--muted);
+      background: transparent;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.18s, color 0.18s;
+    }
+
+    .tab-btn:hover { color: var(--text); }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      color: #04140a;
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; animation: fade 0.25s ease; }
+
+    @keyframes fade {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    /* ── Image upload ───────────────────────────────────── */
+    .dropzone {
+      border: 2px dashed rgba(255, 255, 255, 0.18);
+      border-radius: 16px;
+      padding: 38px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.18s, background 0.18s;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--accent);
+      background: rgba(34, 197, 94, 0.06);
+    }
+
+    .dropzone-icon { font-size: 2.4rem; margin-bottom: 10px; }
+    .dropzone-text { font-weight: 600; margin-bottom: 4px; }
+    .dropzone-hint { color: var(--muted); font-size: 0.85rem; }
+
+    .preview-wrap {
+      display: none;
+      margin-top: 22px;
+      text-align: center;
+    }
+
+    .preview-wrap img {
+      max-width: 260px;
+      max-height: 260px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      image-rendering: auto;
+    }
+
+    .preview-meta {
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-top: 10px;
+    }
+
+            .spinner {
+      display: inline-block;
+      width: 15px; height: 15px;
+      border: 2px solid rgba(255,255,255,0.25);
+      border-top-color: var(--text);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: -2px;
+      margin-right: 8px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+
+<script>
+  window.onload = function () {
+    const result = document.getElementById("result-box");
+    if (result) {
+      result.scrollIntoView({ behavior: "smooth" });
+    }
+  }
+</script>
+
+<body>
+
+  <div class="container">
+
+    <h1 class="brand">Truth<span>Lens</span></h1>
+    <p class="brand-sub">Fake news detection and AI-generated image detection</p>
+
+    <div class="tabs">
+      <button type="button" class="tab-btn active" data-tab="news" onclick="showTab('news')">
+        Fake News
+      </button>
+      <button type="button" class="tab-btn" data-tab="image" onclick="showTab('image')">
+        AI Image
+      </button>
+    </div>
+
+    <div id="tab-news" class="tab-panel active">
+
+    <h2 class="heading" style="font-size:1.35rem;">Fake News Detection</h2>
+    <p class="subtext">Fetch a real article or paste text to check authenticity.</p>
+
+    <button onclick="fetchNews()">Fetch News</button>
+    <script>
+      async function fetchNews() {
+          const response = await fetch('/fetch_news');
+          const data = await response.json();
+          const newsText = data.news && typeof data.news === "string" && data.news.trim() !== "" ? data.news : "Unable to fetch news.";
+          document.getElementsByName('news_text')[0].value = newsText;
+      }
+    </script>
+
+
+    {% if article_title and article_title != 'None' %}
+
+    <div class="news-card">
+
+      <div class="news-title">
+        {{ article_title }}
+      </div>
+
+      <div>
+        {{ article_summary }}
+      </div>
+
+      <div class="news-meta">
+        Published: {{ article_date }}
+      </div>
+
+      <a class="news-link" href="{{ article_link }}" target="_blank">
+        Read Full Article →
+      </a>
+
+    </div>
+
+    {% endif %}
+
+
+    <form method="POST" action="/">
+
+      <input type="hidden" name="article_title" value="{{ article_title }}">
+      <input type="hidden" name="article_summary" value="{{ article_summary }}">
+      <input type="hidden" name="article_date" value="{{ article_date }}">
+      <input type="hidden" name="article_link" value="{{ article_link }}">
+
+      <textarea name="news_text" placeholder="Paste news here...">{{ entered_text }}</textarea>
+
+      <button type="submit">
+        Check News
+      </button>
+
+    </form>
+
+
+    {% if result_text %}
+    <div id="result-box" class="{{ result_class }}">
+
+      {% if result_text == "REAL" %}
+      <div class="result-label">
+        <span class="icon">✅</span> Prediction: REAL
+      </div>
+      {% elif result_text == "FAKE" %}
+      <div class="result-label">
+        <span class="icon">❌</span> Prediction: FAKE
+      </div>
+      {% else %}
+      <div style="font-weight:600;text-align:center;">{{ result_text }}</div>
+      {% endif %}
+
+      {% if real_prob is not none and fake_prob is not none %}
+      <!-- Real probability bar -->
+      <div class="prob-section">
+        <div class="prob-row">
+          <span>Real Probability</span>
+          <strong>{{ real_prob }}%</strong>
+        </div>
+        <div class="prob-bar">
+          <div class="prob-fill fill-real" style="width:{{ real_prob }}%"></div>
+        </div>
+
+        <!-- Fake probability bar -->
+        <div class="prob-row">
+          <span>Fake Probability</span>
+          <strong>{{ fake_prob }}%</strong>
+        </div>
+        <div class="prob-bar">
+          <div class="prob-fill fill-fake" style="width:{{ fake_prob }}%"></div>
+        </div>
+      </div>
+      {% elif confidence is not none %}
+      <div class="prob-section">
+        <div class="prob-row">
+          <span>Confidence</span>
+          <strong>{{ confidence }}%</strong>
+        </div>
+        <div class="prob-bar">
+          <div class="prob-fill {{ 'fill-real' if result_text == 'REAL' else 'fill-fake' }}"
+            style="width:{{ confidence }}%"></div>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+
+    <!-- ── Explanation section ── -->
+    {% if top_features %}
+    <div class="explanation-card">
+      <div class="explanation-title">
+        <span class="icon">🔍</span> Top Influencing Words
+      </div>
+      <div class="word-pills">
+        {% for feat in top_features %}
+        <span class="word-pill {{ feat.direction }}">
+          {% if feat.direction == 'fake' %}
+          <span class="arrow">▲</span>
+          {% else %}
+          <span class="arrow">▼</span>
+          {% endif %}
+          {{ feat.word }}
+        </span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% endif %}
+
+    </div><!-- /tab-news -->
+
+    <!-- ══════════ AI-generated image detection ══════════ -->
+    <div id="tab-image" class="tab-panel">
+
+      <h2 class="heading" style="font-size:1.35rem;">AI-Generated Image Detection</h2>
+      <p class="subtext">Upload an image to check whether it was produced by an AI model.</p>
+
+      <div class="dropzone" id="dropzone">
+        <div class="dropzone-icon">🖼️</div>
+        <div class="dropzone-text">Click to choose an image, or drag one here</div>
+        <div class="dropzone-hint">JPG, PNG or WebP · up to 10 MB</div>
+      </div>
+      <input type="file" id="image-input" accept="image/*" style="display:none">
+
+      <div class="preview-wrap" id="preview-wrap">
+        <img id="preview-img" alt="Selected image preview">
+        <div class="preview-meta" id="preview-meta"></div>
+      </div>
+
+      <button type="button" id="analyse-btn" onclick="analyseImage()" style="display:none">
+        Analyse Image
+      </button>
+
+      <div id="image-result" class="" style="display:none">
+        <div class="result-label">
+          <span class="icon" id="image-icon">🔍</span>
+          <span id="image-verdict"></span>
+        </div>
+
+        <div class="prob-section">
+          <div class="prob-row">
+            <span>Real Photo</span>
+            <strong id="image-real-pct">0%</strong>
+          </div>
+          <div class="prob-bar">
+            <div class="prob-fill fill-real" id="image-real-bar" style="width:0%"></div>
+          </div>
+
+          <div class="prob-row" style="margin-top:14px;">
+            <span>AI Generated</span>
+            <strong id="image-fake-pct">0%</strong>
+          </div>
+          <div class="prob-bar">
+            <div class="prob-fill fill-fake" id="image-fake-bar" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /tab-image -->
+
+  </div>
+
+  <script>
+    // ── Tab switching ────────────────────────────────────
+    function showTab(name) {
+      document.querySelectorAll('.tab-panel').forEach(function (panel) {
+        panel.classList.toggle('active', panel.id === 'tab-' + name);
+      });
+      document.querySelectorAll('.tab-btn').forEach(function (btn) {
+        btn.classList.toggle('active', btn.dataset.tab === name);
+      });
+      try { localStorage.setItem('truthlens-tab', name); } catch (e) { /* private mode */ }
+    }
+
+    // Restore the tab the user was last on, unless a news result is on screen.
+    (function () {
+      var hasNewsResult = document.getElementById('result-box') !== null;
+      try {
+        var saved = localStorage.getItem('truthlens-tab');
+        if (saved && !hasNewsResult) { showTab(saved); }
+      } catch (e) { /* ignore */ }
+    })();
+
+    // ── Image upload ─────────────────────────────────────
+    var dropzone = document.getElementById('dropzone');
+    var fileInput = document.getElementById('image-input');
+    var selectedFile = null;
+
+    dropzone.addEventListener('click', function () { fileInput.click(); });
+
+    ['dragenter', 'dragover'].forEach(function (evt) {
+      dropzone.addEventListener(evt, function (e) {
+        e.preventDefault();
+        dropzone.classList.add('dragover');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach(function (evt) {
+      dropzone.addEventListener(evt, function (e) {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+      });
+    });
+
+    dropzone.addEventListener('drop', function (e) {
+      if (e.dataTransfer.files.length) { handleFile(e.dataTransfer.files[0]); }
+    });
+
+    fileInput.addEventListener('change', function () {
+      if (fileInput.files.length) { handleFile(fileInput.files[0]); }
+    });
+
+    function handleFile(file) {
+      if (!file.type.startsWith('image/')) {
+        alert('Please choose an image file.');
+        return;
+      }
+      selectedFile = file;
+
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        var img = document.getElementById('preview-img');
+        img.src = e.target.result;
+        img.onload = function () {
+          document.getElementById('preview-meta').textContent =
+            file.name + ' · ' + img.naturalWidth + '×' + img.naturalHeight +
+            ' · ' + (file.size / 1024).toFixed(0) + ' KB';
+        };
+        document.getElementById('preview-wrap').style.display = 'block';
+        document.getElementById('analyse-btn').style.display = 'block';
+        document.getElementById('image-result').style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function analyseImage() {
+      if (!selectedFile) { return; }
+
+      var btn = document.getElementById('analyse-btn');
+      var original = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Analysing…';
+
+      var form = new FormData();
+      form.append('image', selectedFile);
+
+      try {
+        var response = await fetch('/predict_image', { method: 'POST', body: form });
+        var data = await response.json();
+
+        if (data.error) {
+          alert(data.error);
+          return;
+        }
+
+        var box = document.getElementById('image-result');
+        var isAI = data.prediction === 'AI GENERATED';
+
+        box.className = data.result_class;
+        box.style.display = 'block';
+        document.getElementById('image-icon').textContent = isAI ? '🤖' : '📷';
+        document.getElementById('image-verdict').textContent = data.prediction;
+
+        var realPct = (data.real_prob * 100).toFixed(1);
+        var fakePct = (data.fake_prob * 100).toFixed(1);
+        document.getElementById('image-real-pct').textContent = realPct + '%';
+        document.getElementById('image-fake-pct').textContent = fakePct + '%';
+        document.getElementById('image-real-bar').style.width = realPct + '%';
+        document.getElementById('image-fake-bar').style.width = fakePct + '%';
+
+        box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } catch (err) {
+        alert('Could not reach the server. Is it still running?');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = original;
+      }
+    }
+
+  </script>
+
+</body>
+
+</html>

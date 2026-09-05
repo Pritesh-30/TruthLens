@@ -1,0 +1,7 @@
+{
+  "arch": "resnet18",
+  "params": 11169858,
+  "val_accuracy": 0.9822,
+  "test_accuracy": 0.9791,
+  "epochs": 25
+}

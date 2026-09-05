@@ -1,0 +1,8 @@
+flask
+pandas
+scikit-learn
+nltk
+feedparser
+transformers
+torch
+accelerate
