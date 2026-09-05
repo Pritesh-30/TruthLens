@@ -19,8 +19,8 @@ Requires Python 3.10+ (developed on 3.12). A CUDA GPU is optional; the app runs
 inference on CPU.
 
 ```bash
-git clone <your-repo-url>
-cd FakeNewsDetection
+git clone https://github.com/Pritesh-30/TruthLens.git
+cd TruthLens
 
 python3 -m venv venv
 source venv/bin/activate          # Windows: venv\Scripts\activate
@@ -35,8 +35,8 @@ attached to a Release instead. Download `model.safetensors` and place it in
 `fake_news_model_v2/`:
 
 ```bash
-# Replace <RELEASE_URL> with the asset link from this repo's Releases page
-curl -L -o fake_news_model_v2/model.safetensors <RELEASE_URL>
+curl -L -o fake_news_model_v2/model.safetensors \
+  https://github.com/Pritesh-30/TruthLens/releases/download/v1.0/model.safetensors
 ```
 
 The directory should then contain:
