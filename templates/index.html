@@ -6,708 +6,1123 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TruthLens</title>
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
   <style>
     :root {
-      --bg: #050b16;
-      --card: rgba(7, 16, 30, 0.85);
-      --border: rgba(255, 255, 255, 0.08);
-      --accent: #22c55e;
-      --accent-dark: #15803d;
-      --danger: #f87171;
-      --text: #f8fafc;
-      --muted: #94a3b8;
+      color-scheme: light;
+
+      /* Light sage page, cream newsprint cards, ink, one trust
+         colour (navy), editorial red, and a highlighter yellow. */
+      --bg: #e3ecdf;
+      --surface: #fbf6ea;
+      --ink: #111111;
+      --ink-2: #333333;
+      --ink-3: #6e6a62;
+
+      --navy: #1d3557;
+      --navy-tint: #cddbeb;
+      --red: #c62828;
+      --red-soft: #f6d5d2;
+      --green: #2e7d4f;
+      --marker: #ffe066;
+      --note-bg: #fbf0c9;
+
+      --border: 3px solid var(--ink);
+      --radius: 8px;
+      --shadow: 5px 5px 0 var(--ink);
+      --shadow-sm: 3px 3px 0 var(--ink);
+      --shadow-lg: 8px 8px 0 var(--ink);
+
+      --serif: "Playfair Display", Georgia, "Times New Roman", serif;
+      --sans: "Space Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+      --mono: "Space Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
     }
 
-    * {
-      box-sizing: border-box;
-      font-family: "Segoe UI", "Fira Sans", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-    }
+    * { box-sizing: border-box; }
+
+    html { -webkit-text-size-adjust: 100%; }
 
     body {
       margin: 0;
-      min-height: 100vh;
+      color: var(--ink);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.5;
+      background-color: var(--bg);
+      background-image: radial-gradient(rgba(17, 17, 17, .07) 1px, transparent 1.4px);
+      background-size: 22px 22px;
+    }
+
+    .page {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 20px 64px;
+    }
+
+    :focus-visible {
+      outline: 3px solid #3b5bdb;
+      outline-offset: 3px;
+    }
+
+    /* ── Masthead ─────────────────────────────────────────── */
+    .masthead { padding: 28px 0 0; }
+
+    .masthead-top {
       display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 40px 20px;
-      background: radial-gradient(circle at top, #0f172a, #020617 65%);
-      color: var(--text);
+      border-bottom: 3px solid var(--red);
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      padding: 8px 14px;
+      background: var(--ink);
+      color: var(--bg);
+      border-radius: var(--radius);
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: .04em;
+      text-transform: uppercase;
     }
 
-    .container {
-      width: min(720px, 100%);
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 40px;
-      box-shadow: 0 20px 50px rgba(2, 6, 23, 0.8);
-      backdrop-filter: blur(12px);
+    .brand {
+      display: inline-block;
+      margin: 26px 0 14px;
+      padding: 6px 18px 8px;
+      background: var(--ink);
+      color: var(--surface);
+      border: var(--border);
+      border-radius: var(--radius);
+      box-shadow: 8px 8px 0 var(--red);
+      font-family: var(--serif);
+      font-weight: 900;
+      font-size: clamp(40px, 8vw, 68px);
+      line-height: 1;
+      letter-spacing: -0.01em;
     }
 
-    .heading {
-      text-align: center;
-      font-size: 2rem;
+    .tagline {
+      font-size: 19px;
+      font-weight: 500;
+      margin: 10px 0 0;
+    }
+
+    /* ── Choice cards (tabs) ──────────────────────────────── */
+    .choose-label {
+      font-weight: 700;
+      font-size: 15px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      margin: 36px 0 12px;
+    }
+
+    .choices {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-bottom: 44px;
+    }
+
+    @media (max-width: 600px) {
+      .choices { grid-template-columns: 1fr; }
+    }
+
+    .choice {
+      appearance: none;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      text-align: left;
+      padding: 18px;
+      background: var(--surface);
+      color: var(--ink);
+      border: var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      font-family: var(--sans);
+      transition: transform .1s, box-shadow .1s, background .1s;
+    }
+
+    .choice:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 7px 7px 0 var(--ink);
+    }
+
+    .choice:active {
+      transform: translate(3px, 3px);
+      box-shadow: 2px 2px 0 var(--ink);
+    }
+
+    /* Selected: solid navy with white text. Unselected: flat and muted, so
+       the active choice is obvious at a glance. */
+    .choice[aria-selected="true"] {
+      background: var(--navy);
+      color: #fff;
+      box-shadow: 6px 6px 0 var(--red);
+    }
+
+    .choice[aria-selected="true"] .choice-desc { color: #dfe7f1; }
+
+    .choice[aria-selected="false"] {
+      box-shadow: var(--shadow-sm);
+      opacity: .75;
+    }
+
+    .choice[aria-selected="false"]:hover { opacity: 1; }
+
+    .choice-dot {
+      flex: none;
+      width: 24px;
+      height: 24px;
+      margin-top: 2px;
+      border: var(--border);
+      border-radius: 4px;
+      background: var(--surface);
+    }
+
+    .choice[aria-selected="true"] .choice-dot {
+      position: relative;
+      background: var(--marker);
+    }
+
+    /* Check mark inside the selected box. */
+    .choice[aria-selected="true"] .choice-dot::after {
+      content: "";
+      position: absolute;
+      left: 5px;
+      top: 0;
+      width: 6px;
+      height: 12px;
+      border: solid var(--ink);
+      border-width: 0 3px 3px 0;
+      transform: rotate(45deg);
+    }
+
+    .choice-title {
+      display: block;
+      font-family: var(--serif);
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.15;
+      margin-bottom: 4px;
+    }
+
+    .choice-desc {
+      display: block;
+      font-size: 15px;
+      color: var(--ink-2);
+    }
+
+    .panel[hidden], .drop[hidden], .actions[hidden], .step-body [hidden] { display: none; }
+
+    /* ── Steps ────────────────────────────────────────────── */
+    .steps {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .step {
+      position: relative;
+      padding: 0 0 40px 60px;
+    }
+
+    .step:not(:last-child)::before {
+      content: "";
+      position: absolute;
+      left: 19px;
+      top: 46px;
+      bottom: 6px;
+      border-left: 3px dashed var(--ink);
+    }
+
+    .step-num {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      background: var(--navy);
+      color: #fff;
+      border: var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      font-family: var(--mono);
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .step.done .step-num { background: var(--green); }
+
+    .step.waiting .step-num {
+      background: var(--surface);
+      color: var(--ink-3);
+      border-color: var(--ink-3);
+      box-shadow: 3px 3px 0 var(--ink-3);
+    }
+
+    .step.waiting h2 { color: var(--ink-3); }
+
+    .step h2 {
+      font-family: var(--serif);
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 40px;
+      letter-spacing: -0.01em;
+      margin: 0 0 6px;
+    }
+
+    .step-help {
+      color: var(--ink-2);
+      margin: 0 0 16px;
+      font-size: 16px;
+    }
+
+    .inline-link {
+      appearance: none;
+      background: var(--marker);
+      border: 2px solid var(--ink);
+      border-radius: 4px;
+      padding: 1px 8px;
+      font: inherit;
+      font-weight: 700;
+      color: var(--ink);
+      cursor: pointer;
+      box-shadow: 2px 2px 0 var(--ink);
+    }
+
+    .inline-link:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--ink); }
+    .inline-link:active { transform: translate(2px, 2px); box-shadow: none; }
+    .inline-link[disabled] { opacity: .6; cursor: progress; }
+
+    /* ── Form controls ────────────────────────────────────── */
+    .field-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
       margin-bottom: 8px;
     }
 
-    .subtext {
-      text-align: center;
-      color: var(--muted);
-      margin-bottom: 30px;
+    label.field-label {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .05em;
     }
 
-    button {
-      width: 100%;
-      padding: 15px;
-      margin-top: 18px;
-      border: none;
-      border-radius: 12px;
-      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
-      color: #041006;
-      font-weight: 600;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: .15s;
-    }
-
-    button:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 10px 25px rgba(34, 197, 94, .25);
+    .count {
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 2px 8px;
+      background: var(--surface);
+      border: 2px solid var(--ink);
+      border-radius: 4px;
     }
 
     textarea {
+      display: block;
       width: 100%;
-      min-height: 160px;
-      padding: 18px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: rgba(15, 23, 42, 0.8);
-      color: var(--text);
+      min-height: 240px;
+      padding: 16px 18px;
+      background: var(--surface);
+      color: var(--ink);
+      border: var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      font-family: var(--sans);
+      font-size: 17px;
+      line-height: 1.55;
       resize: vertical;
-      font-size: 1rem;
-      margin-top: 18px;
+      transition: box-shadow .1s;
     }
+
+    textarea::placeholder { color: var(--ink-3); }
 
     textarea:focus {
       outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(34, 197, 94, .2);
+      box-shadow: 5px 5px 0 var(--navy);
     }
 
-    .news-card {
-      margin-top: 22px;
-      padding: 22px;
-      border-radius: 14px;
-      border: 1px solid rgba(250, 204, 21, .4);
-      background: rgba(250, 204, 21, .08);
-      line-height: 1.6;
-    }
-
-    .news-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-bottom: 10px;
-    }
-
-    .news-meta {
-      color: var(--muted);
-      font-size: .9rem;
-      margin-top: 8px;
-    }
-
-    .news-link {
-      display: inline-block;
-      margin-top: 10px;
-      color: #60a5fa;
-      text-decoration: none;
-      font-size: .95rem;
-    }
-
-    .news-link:hover {
-      text-decoration: underline;
-    }
-
-    .result-real,
-    .result-fake {
-      margin-top: 24px;
-      padding: 24px;
-      border-radius: 14px;
-      border: 1px solid var(--border);
-    }
-
-    .result-real {
-      background: rgba(34, 197, 94, .10);
-      border-color: rgba(34, 197, 94, .35);
-    }
-
-    .result-fake {
-      background: rgba(248, 113, 113, .10);
-      border-color: rgba(248, 113, 113, .35);
-    }
-
-    .result-label {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 1.3rem;
-      font-weight: 700;
-      margin-bottom: 14px;
-    }
-
-    .result-label .icon {
-      font-size: 1.6rem;
-    }
-
-    /* ── dual probability bars ────────────────────────────── */
-    .prob-section {
-      margin-top: 10px;
-    }
-
-    .prob-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 4px;
-      font-size: .9rem;
-      color: var(--muted);
-    }
-
-    .prob-row strong {
-      color: var(--text);
-      font-size: .95rem;
-    }
-
-    .prob-bar {
-      width: 100%;
-      height: 10px;
-      border-radius: 6px;
-      background: rgba(255, 255, 255, .08);
-      overflow: hidden;
-      margin-bottom: 14px;
-    }
-
-    .prob-fill {
-      height: 100%;
-      border-radius: 6px;
-      transition: width .6s ease;
-    }
-
-    .fill-real {
-      background: linear-gradient(90deg, #22c55e, #4ade80);
-    }
-
-    .fill-fake {
-      background: linear-gradient(90deg, #f87171, #fca5a5);
-    }
-
-    /* ── explanation card ─────────────────────────────────── */
-    .explanation-card {
-      margin-top: 18px;
-      padding: 20px;
-      border-radius: 14px;
-      border: 1px solid var(--border);
-      background: rgba(255, 255, 255, .03);
-    }
-
-    .explanation-title {
-      font-size: 1rem;
-      font-weight: 600;
-      margin-bottom: 14px;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .explanation-title .icon {
-      font-size: 1.1rem;
-    }
-
-    .word-pills {
+    .actions {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    .word-pill {
-      display: inline-flex;
+      gap: 14px;
       align-items: center;
-      gap: 6px;
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: .88rem;
-      font-weight: 600;
-      letter-spacing: .02em;
+      margin-top: 22px;
     }
 
-    .word-pill.real {
-      background: rgba(34, 197, 94, .15);
-      border: 1px solid rgba(34, 197, 94, .35);
-      color: #4ade80;
-    }
-
-    .word-pill.fake {
-      background: rgba(248, 113, 113, .15);
-      border: 1px solid rgba(248, 113, 113, .35);
-      color: #fca5a5;
-    }
-
-    .word-pill .arrow {
-      font-size: .75rem;
-      opacity: .7;
-    }
-
-    .result-warning {
-      margin-top: 24px;
-      padding: 16px;
-      border-radius: 12px;
-      border: 1px solid rgba(250, 204, 21, .35);
-      background: rgba(250, 204, 21, .08);
-      font-weight: 600;
-      text-align: center;
-      color: #facc15;
-    }
-
-    /* ── Tabs ───────────────────────────────────────────── */
-    .brand {
-      text-align: center;
-      font-size: 2.1rem;
+    .btn {
+      appearance: none;
+      font-family: var(--sans);
+      font-size: 15px;
       font-weight: 700;
-      letter-spacing: -0.5px;
-      margin: 0 0 4px;
-    }
-
-    .brand span { color: var(--accent); }
-
-    .brand-sub {
-      text-align: center;
-      color: var(--muted);
-      font-size: 0.92rem;
-      margin: 0 0 26px;
-    }
-
-    .tabs {
-      display: flex;
-      gap: 6px;
-      padding: 6px;
-      margin-bottom: 28px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-    }
-
-    .tab-btn {
-      flex: 1;
-      width: auto;
-      margin: 0;
-      padding: 12px 10px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: var(--muted);
-      background: transparent;
-      border: none;
-      border-radius: 10px;
+      padding: 11px 20px;
+      color: var(--ink);
+      background: var(--surface);
+      border: var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
       cursor: pointer;
-      transition: background 0.18s, color 0.18s;
+      line-height: 1.2;
+      transition: transform .08s, box-shadow .08s;
     }
 
-    .tab-btn:hover { color: var(--text); }
+    .btn:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
+    .btn:active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--ink); }
 
-    .tab-btn.active {
-      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
-      color: #04140a;
+    .btn-primary { background: var(--navy); color: #fff; }
+    .btn-ghost { background: var(--surface); }
+
+    .btn-link {
+      background: none;
+      border: 0;
+      box-shadow: none;
+      padding: 11px 4px;
+      text-decoration: underline;
+      text-decoration-thickness: 2px;
+      text-underline-offset: 4px;
     }
 
-    .tab-panel { display: none; }
-    .tab-panel.active { display: block; animation: fade 0.25s ease; }
+    .btn-link:hover, .btn-link:active { transform: none; box-shadow: none; background: var(--marker); }
 
-    @keyframes fade {
-      from { opacity: 0; transform: translateY(6px); }
+    .btn-big {
+      font-size: 17px;
+      padding: 14px 28px;
+      box-shadow: var(--shadow);
+    }
+
+    .btn-big:hover { box-shadow: 6px 6px 0 var(--ink); }
+
+    .btn[disabled] { opacity: .65; cursor: progress; transform: none; }
+
+    .hint {
+      font-size: 13px;
+      color: var(--ink-2);
+      margin-left: auto;
+    }
+
+    .hint kbd {
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 1px 6px;
+      background: var(--surface);
+      border: 2px solid var(--ink);
+      border-radius: 4px;
+      box-shadow: 2px 2px 0 var(--ink);
+    }
+
+    @media (max-width: 520px) { .hint { display: none; } }
+
+    /* ── Source article card ──────────────────────────────── */
+    .source {
+      background: var(--surface);
+      border: var(--border);
+      border-left: 10px solid var(--red);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px 18px;
+      margin: 0 0 24px;
+    }
+
+    .source-title {
+      font-family: var(--serif);
+      font-size: 21px;
+      font-weight: 700;
+      line-height: 1.25;
+      margin: 0 0 6px;
+    }
+
+    .source-body { color: var(--ink-2); margin: 0 0 8px; }
+
+    .source-meta {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--ink-3);
+    }
+
+    .source-meta a { color: var(--ink); font-weight: 700; }
+
+    /* ── Result ───────────────────────────────────────────── */
+    .empty {
+      margin: 0;
+      padding: 14px 16px;
+      border: 3px dashed var(--ink-3);
+      border-radius: var(--radius);
+      color: var(--ink-3);
+      font-weight: 500;
+    }
+
+    .result-box {
+      background: var(--surface);
+      border: var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      padding: 24px;
+      margin-top: 4px;
+    }
+
+    .verdict { animation: pop .22s ease-out; }
+
+    @keyframes pop {
+      from { opacity: 0; transform: translate(-6px, -6px); }
       to   { opacity: 1; transform: none; }
     }
 
-    /* ── Image upload ───────────────────────────────────── */
-    .dropzone {
-      border: 2px dashed rgba(255, 255, 255, 0.18);
-      border-radius: 16px;
-      padding: 38px 20px;
+    @media (prefers-reduced-motion: reduce) {
+      .verdict { animation: none; }
+      .meter-fill { transition: none !important; }
+      .btn, .choice, .inline-link { transition: none; }
+    }
+
+    .stamp {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      background: var(--ink);
+      color: var(--surface);
+      border-radius: 4px;
+      margin-bottom: 14px;
+    }
+
+    .verdict-word {
+      display: inline-block;
+      font-family: var(--serif);
+      font-weight: 900;
+      color: #fff;
+      font-size: 40px;
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      margin: 0 0 14px;
+      padding: 6px 14px 8px;
+      border: var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .is-fake .verdict-word { background: var(--red); }
+    .is-real .verdict-word { background: var(--green); }
+
+    .verdict-sub { color: var(--ink-2); margin: 4px 0 20px; }
+
+    .verdict-sub .num {
+      font-family: var(--mono);
+      font-weight: 700;
+      color: var(--ink);
+      background: var(--marker);
+      padding: 0 4px;
+    }
+
+    /* Single meter: fake on the left, real on the right. */
+    .meter { margin-bottom: 8px; }
+
+    .meter-track {
+      position: relative;
+      height: 26px;
+      border: var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--red);
+    }
+
+    .meter-fill {
+      position: absolute;
+      inset: 0 0 0 auto;
+      background: var(--green);
+      border-left: 3px solid var(--ink);
+      transition: width .5s ease;
+    }
+
+    .meter-mid {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      border-left: 3px dashed var(--ink);
+    }
+
+    .meter-scale {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--mono);
+      font-size: 13px;
+      margin-top: 8px;
+    }
+
+    .meter-scale b { font-weight: 700; }
+
+    .facts {
+      margin: 22px 0 0;
+      padding: 0;
+      border: var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .facts div {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 10px 14px;
+      font-size: 14px;
+    }
+
+    .facts div + div { border-top: 2px solid var(--ink); }
+
+    .facts dt { font-weight: 700; }
+    .facts dd { margin: 0; font-family: var(--mono); font-size: 13px; text-align: right; }
+
+    .note {
+      margin: 18px 0 0;
+      font-size: 14px;
+      color: var(--ink-2);
+    }
+
+    .alert {
+      padding: 12px 16px;
+      background: var(--note-bg);
+      border: var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      font-weight: 500;
+      font-size: 15px;
+      margin-top: 18px;
+    }
+
+    .alert.error { background: var(--red-soft); }
+
+    /* ── Image upload ─────────────────────────────────────── */
+    .drop {
+      display: block;
+      background: var(--surface);
+      border: 3px dashed var(--ink);
+      border-radius: var(--radius);
+      padding: 48px 24px;
       text-align: center;
       cursor: pointer;
-      transition: border-color 0.18s, background 0.18s;
-      background: rgba(255, 255, 255, 0.02);
+      transition: background .1s;
     }
 
-    .dropzone:hover, .dropzone.dragover {
-      border-color: var(--accent);
-      background: rgba(34, 197, 94, 0.06);
+    .drop:hover, .drop.over { background: var(--navy-tint); border-style: solid; box-shadow: var(--shadow); }
+
+    .drop-title {
+      font-family: var(--serif);
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0 0 6px;
     }
 
-    .dropzone-icon { font-size: 2.4rem; margin-bottom: 10px; }
-    .dropzone-text { font-weight: 600; margin-bottom: 4px; }
-    .dropzone-hint { color: var(--muted); font-size: 0.85rem; }
+    .drop-hint { font-size: 14px; color: var(--ink-2); margin: 0; }
 
-    .preview-wrap {
-      display: none;
-      margin-top: 22px;
-      text-align: center;
+    .drop-hint u {
+      text-decoration: none;
+      font-weight: 700;
+      color: var(--ink);
+      background: var(--marker);
+      padding: 0 4px;
     }
 
-    .preview-wrap img {
-      max-width: 260px;
-      max-height: 260px;
-      border-radius: 14px;
-      border: 1px solid var(--border);
-      image-rendering: auto;
+    .figure {
+      margin: 0;
+      padding: 12px;
+      background: var(--surface);
+      border: var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
     }
 
-    .preview-meta {
-      color: var(--muted);
-      font-size: 0.82rem;
-      margin-top: 10px;
+    .figure[hidden] { display: none; }
+
+    .figure img {
+      display: block;
+      max-width: 100%;
+      max-height: 420px;
+      margin: 0 auto;
+      border: 2px solid var(--ink);
     }
 
-            .spinner {
+    .figure figcaption {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-family: var(--mono);
+      font-size: 12px;
+      padding-top: 10px;
+      margin-top: 12px;
+      border-top: 2px solid var(--ink);
+    }
+
+    .figure figcaption span:first-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 700;
+    }
+
+    .spinner {
       display: inline-block;
-      width: 15px; height: 15px;
-      border: 2px solid rgba(255,255,255,0.25);
-      border-top-color: var(--text);
+      width: 13px;
+      height: 13px;
+      border: 2.5px solid currentColor;
+      border-right-color: transparent;
       border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      vertical-align: -2px;
+      animation: spin .7s linear infinite;
+      vertical-align: -1px;
       margin-right: 8px;
     }
 
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    .visually-hidden {
+      position: absolute;
+      width: 1px; height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
   </style>
 </head>
 
-<script>
-  window.onload = function () {
-    const result = document.getElementById("result-box");
-    if (result) {
-      result.scrollIntoView({ behavior: "smooth" });
-    }
-  }
-</script>
-
 <body>
+  <div class="page">
 
-  <div class="container">
-
-    <h1 class="brand">Truth<span>Lens</span></h1>
-    <p class="brand-sub">Fake news detection and AI-generated image detection</p>
-
-    <div class="tabs">
-      <button type="button" class="tab-btn active" data-tab="news" onclick="showTab('news')">
-        Fake News
-      </button>
-      <button type="button" class="tab-btn" data-tab="image" onclick="showTab('image')">
-        AI Image
-      </button>
-    </div>
-
-    <div id="tab-news" class="tab-panel active">
-
-    <h2 class="heading" style="font-size:1.35rem;">Fake News Detection</h2>
-    <p class="subtext">Fetch a real article or paste text to check authenticity.</p>
-
-    <button onclick="fetchNews()">Fetch News</button>
-    <script>
-      async function fetchNews() {
-          const response = await fetch('/fetch_news');
-          const data = await response.json();
-          const newsText = data.news && typeof data.news === "string" && data.news.trim() !== "" ? data.news : "Unable to fetch news.";
-          document.getElementsByName('news_text')[0].value = newsText;
-      }
-    </script>
-
-
-    {% if article_title and article_title != 'None' %}
-
-    <div class="news-card">
-
-      <div class="news-title">
-        {{ article_title }}
+    <header class="masthead">
+      <div class="masthead-top">
+        <span id="today"></span>
+        <span>Fact-check desk</span>
       </div>
+      <h1 class="brand">TruthLens</h1>
+      <p class="tagline">Check an article or an image before you share it.</p>
+    </header>
 
-      <div>
-        {{ article_summary }}
-      </div>
-
-      <div class="news-meta">
-        Published: {{ article_date }}
-      </div>
-
-      <a class="news-link" href="{{ article_link }}" target="_blank">
-        Read Full Article →
-      </a>
-
-    </div>
-
-    {% endif %}
-
-
-    <form method="POST" action="/">
-
-      <input type="hidden" name="article_title" value="{{ article_title }}">
-      <input type="hidden" name="article_summary" value="{{ article_summary }}">
-      <input type="hidden" name="article_date" value="{{ article_date }}">
-      <input type="hidden" name="article_link" value="{{ article_link }}">
-
-      <textarea name="news_text" placeholder="Paste news here...">{{ entered_text }}</textarea>
-
-      <button type="submit">
-        Check News
-      </button>
-
-    </form>
-
-
-    {% if result_text %}
-    <div id="result-box" class="{{ result_class }}">
-
-      {% if result_text == "REAL" %}
-      <div class="result-label">
-        <span class="icon">✅</span> Prediction: REAL
-      </div>
-      {% elif result_text == "FAKE" %}
-      <div class="result-label">
-        <span class="icon">❌</span> Prediction: FAKE
-      </div>
-      {% else %}
-      <div style="font-weight:600;text-align:center;">{{ result_text }}</div>
-      {% endif %}
-
-      {% if real_prob is not none and fake_prob is not none %}
-      <!-- Real probability bar -->
-      <div class="prob-section">
-        <div class="prob-row">
-          <span>Real Probability</span>
-          <strong>{{ real_prob }}%</strong>
-        </div>
-        <div class="prob-bar">
-          <div class="prob-fill fill-real" style="width:{{ real_prob }}%"></div>
-        </div>
-
-        <!-- Fake probability bar -->
-        <div class="prob-row">
-          <span>Fake Probability</span>
-          <strong>{{ fake_prob }}%</strong>
-        </div>
-        <div class="prob-bar">
-          <div class="prob-fill fill-fake" style="width:{{ fake_prob }}%"></div>
-        </div>
-      </div>
-      {% elif confidence is not none %}
-      <div class="prob-section">
-        <div class="prob-row">
-          <span>Confidence</span>
-          <strong>{{ confidence }}%</strong>
-        </div>
-        <div class="prob-bar">
-          <div class="prob-fill {{ 'fill-real' if result_text == 'REAL' else 'fill-fake' }}"
-            style="width:{{ confidence }}%"></div>
-        </div>
-      </div>
-      {% endif %}
-
-    </div>
-
-    <!-- ── Explanation section ── -->
-    {% if top_features %}
-    <div class="explanation-card">
-      <div class="explanation-title">
-        <span class="icon">🔍</span> Top Influencing Words
-      </div>
-      <div class="word-pills">
-        {% for feat in top_features %}
-        <span class="word-pill {{ feat.direction }}">
-          {% if feat.direction == 'fake' %}
-          <span class="arrow">▲</span>
-          {% else %}
-          <span class="arrow">▼</span>
-          {% endif %}
-          {{ feat.word }}
+    <p class="choose-label">What do you want to check?</p>
+    <div class="choices" role="tablist" aria-label="What to check">
+      <button type="button" class="choice" role="tab" id="tab-news" aria-controls="panel-news" aria-selected="true" data-tab="news">
+        <span class="choice-dot" aria-hidden="true"></span>
+        <span>
+          <span class="choice-title">A news article</span>
+          <span class="choice-desc">Paste text and find out if it reads as real or fake news.</span>
         </span>
-        {% endfor %}
-      </div>
-    </div>
-    {% endif %}
-
-    {% endif %}
-
-    </div><!-- /tab-news -->
-
-    <!-- ══════════ AI-generated image detection ══════════ -->
-    <div id="tab-image" class="tab-panel">
-
-      <h2 class="heading" style="font-size:1.35rem;">AI-Generated Image Detection</h2>
-      <p class="subtext">Upload an image to check whether it was produced by an AI model.</p>
-
-      <div class="dropzone" id="dropzone">
-        <div class="dropzone-icon">🖼️</div>
-        <div class="dropzone-text">Click to choose an image, or drag one here</div>
-        <div class="dropzone-hint">JPG, PNG or WebP · up to 10 MB</div>
-      </div>
-      <input type="file" id="image-input" accept="image/*" style="display:none">
-
-      <div class="preview-wrap" id="preview-wrap">
-        <img id="preview-img" alt="Selected image preview">
-        <div class="preview-meta" id="preview-meta"></div>
-      </div>
-
-      <button type="button" id="analyse-btn" onclick="analyseImage()" style="display:none">
-        Analyse Image
       </button>
+      <button type="button" class="choice" role="tab" id="tab-image" aria-controls="panel-image" aria-selected="false" data-tab="image">
+        <span class="choice-dot" aria-hidden="true"></span>
+        <span>
+          <span class="choice-title">An image</span>
+          <span class="choice-desc">Upload a picture and find out if it was made by AI.</span>
+        </span>
+      </button>
+    </div>
 
-      <div id="image-result" class="" style="display:none">
-        <div class="result-label">
-          <span class="icon" id="image-icon">🔍</span>
-          <span id="image-verdict"></span>
-        </div>
+    <!-- ═════════════ News ═════════════ -->
+    <section class="panel" id="panel-news" role="tabpanel" aria-labelledby="tab-news">
+      <ol class="steps">
 
-        <div class="prob-section">
-          <div class="prob-row">
-            <span>Real Photo</span>
-            <strong id="image-real-pct">0%</strong>
-          </div>
-          <div class="prob-bar">
-            <div class="prob-fill fill-real" id="image-real-bar" style="width:0%"></div>
-          </div>
+        <li class="step" id="news-step-1">
+          <span class="step-num" aria-hidden="true">1</span>
+          <h2>Paste the article</h2>
+          <p class="step-help">
+            Copy a headline or the full story from any website and paste it in the box.
+            No article handy? <button type="button" class="inline-link" id="fetch-btn">Load an article from the internet</button>
+          </p>
 
-          <div class="prob-row" style="margin-top:14px;">
-            <span>AI Generated</span>
-            <strong id="image-fake-pct">0%</strong>
-          </div>
-          <div class="prob-bar">
-            <div class="prob-fill fill-fake" id="image-fake-bar" style="width:0%"></div>
-          </div>
-        </div>
-      </div>
+          {% if article_title and article_title != 'None' %}
+          <article class="source">
+            <h3 class="source-title">{{ article_title }}</h3>
+            {% if article_summary %}<p class="source-body">{{ article_summary|truncate(280) }}</p>{% endif %}
+            <div class="source-meta">
+              {% if article_date %}{{ article_date }}{% endif %}
+              {% if article_link %} · <a href="{{ article_link }}" target="_blank" rel="noopener">Read original</a>{% endif %}
+            </div>
+          </article>
+          {% endif %}
 
-    </div><!-- /tab-image -->
+          <form id="news-form" method="POST" action="/">
+            <div class="field-head">
+              <label class="field-label" for="news-text">Article text</label>
+              <span class="count" id="news-count">0 words</span>
+            </div>
+            <textarea id="news-text" name="news_text" placeholder="Paste the headline and article here…">{{ entered_text }}</textarea>
+
+            <div class="actions">
+              <button type="submit" class="btn btn-primary btn-big" id="check-btn">Check this article</button>
+              <button type="button" class="btn btn-link" id="clear-btn">Clear</button>
+              <span class="hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> also works</span>
+            </div>
+          </form>
+        </li>
+
+        <li class="step waiting" id="news-step-2">
+          <span class="step-num" aria-hidden="true">2</span>
+          <h2>See the result</h2>
+          <div id="news-result" aria-live="polite">
+            <p class="empty">The result will show up here after you press “Check this article”.</p>
+          </div>
+        </li>
+
+      </ol>
+    </section>
+
+    <!-- ═════════════ Image ═════════════ -->
+    <section class="panel" id="panel-image" role="tabpanel" aria-labelledby="tab-image" hidden>
+      <ol class="steps">
+
+        <li class="step" id="image-step-1">
+          <span class="step-num" aria-hidden="true">1</span>
+          <h2>Upload the image</h2>
+          <p class="step-help">Drag an image into the box, or click the box to pick one from your computer.</p>
+
+          <label class="drop" id="drop" for="image-input">
+            <p class="drop-title">Drop an image here</p>
+            <p class="drop-hint">or <u>click to browse</u> · JPG, PNG or WebP, up to 10 MB</p>
+          </label>
+          <input type="file" id="image-input" accept="image/*" class="visually-hidden">
+
+          <figure class="figure" id="figure" hidden>
+            <img id="preview" alt="Selected image">
+            <figcaption>
+              <span id="fig-name"></span>
+              <span id="fig-meta"></span>
+            </figcaption>
+          </figure>
+
+          <div class="actions" id="image-actions" hidden>
+            <button type="button" class="btn btn-primary btn-big" id="analyse-btn">Check this image</button>
+            <button type="button" class="btn btn-ghost" id="replace-btn">Use a different image</button>
+          </div>
+        </li>
+
+        <li class="step waiting" id="image-step-2">
+          <span class="step-num" aria-hidden="true">2</span>
+          <h2>See the result</h2>
+          <div id="image-result" aria-live="polite">
+            <p class="empty">The result will show up here after you upload an image and press “Check this image”.</p>
+          </div>
+        </li>
+
+      </ol>
+    </section>
 
   </div>
 
   <script>
-    // ── Tab switching ────────────────────────────────────
-    function showTab(name) {
-      document.querySelectorAll('.tab-panel').forEach(function (panel) {
-        panel.classList.toggle('active', panel.id === 'tab-' + name);
-      });
-      document.querySelectorAll('.tab-btn').forEach(function (btn) {
-        btn.classList.toggle('active', btn.dataset.tab === name);
-      });
-      try { localStorage.setItem('truthlens-tab', name); } catch (e) { /* private mode */ }
-    }
-
-    // Restore the tab the user was last on, unless a news result is on screen.
     (function () {
-      var hasNewsResult = document.getElementById('result-box') !== null;
-      try {
-        var saved = localStorage.getItem('truthlens-tab');
-        if (saved && !hasNewsResult) { showTab(saved); }
-      } catch (e) { /* ignore */ }
-    })();
+      // ── Helpers ─────────────────────────────────────────
+      function $(id) { return document.getElementById(id); }
 
-    // ── Image upload ─────────────────────────────────────
-    var dropzone = document.getElementById('dropzone');
-    var fileInput = document.getElementById('image-input');
-    var selectedFile = null;
+      function pct(p) { return (p * 100).toFixed(1) + '%'; }
 
-    dropzone.addEventListener('click', function () { fileInput.click(); });
-
-    ['dragenter', 'dragover'].forEach(function (evt) {
-      dropzone.addEventListener(evt, function (e) {
-        e.preventDefault();
-        dropzone.classList.add('dragover');
-      });
-    });
-
-    ['dragleave', 'drop'].forEach(function (evt) {
-      dropzone.addEventListener(evt, function (e) {
-        e.preventDefault();
-        dropzone.classList.remove('dragover');
-      });
-    });
-
-    dropzone.addEventListener('drop', function (e) {
-      if (e.dataTransfer.files.length) { handleFile(e.dataTransfer.files[0]); }
-    });
-
-    fileInput.addEventListener('change', function () {
-      if (fileInput.files.length) { handleFile(fileInput.files[0]); }
-    });
-
-    function handleFile(file) {
-      if (!file.type.startsWith('image/')) {
-        alert('Please choose an image file.');
-        return;
+      function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
       }
-      selectedFile = file;
 
-      var reader = new FileReader();
-      reader.onload = function (e) {
-        var img = document.getElementById('preview-img');
-        img.src = e.target.result;
-        img.onload = function () {
-          document.getElementById('preview-meta').textContent =
-            file.name + ' · ' + img.naturalWidth + '×' + img.naturalHeight +
-            ' · ' + (file.size / 1024).toFixed(0) + ' KB';
-        };
-        document.getElementById('preview-wrap').style.display = 'block';
-        document.getElementById('analyse-btn').style.display = 'block';
-        document.getElementById('image-result').style.display = 'none';
-      };
-      reader.readAsDataURL(file);
-    }
+      function strength(conf) {
+        if (conf >= 0.9) return 'High';
+        if (conf >= 0.7) return 'Moderate';
+        return 'Low';
+      }
 
-    async function analyseImage() {
-      if (!selectedFile) { return; }
+      function setBusy(btn, busy, label) {
+        if (busy) {
+          btn.dataset.label = btn.textContent;
+          btn.disabled = true;
+          btn.innerHTML = '<span class="spinner" aria-hidden="true"></span>' + label;
+        } else {
+          btn.disabled = false;
+          btn.textContent = btn.dataset.label || btn.textContent;
+        }
+      }
 
-      var btn = document.getElementById('analyse-btn');
-      var original = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerHTML = '<span class="spinner"></span>Analysing…';
+      function alertBox(msg, kind) {
+        return '<div class="alert ' + (kind || '') + '">' + escapeHtml(msg) + '</div>';
+      }
 
-      var form = new FormData();
-      form.append('image', selectedFile);
+      // Shared verdict renderer. opts: {isFake, word, fakeProb, realProb,
+      // fakeLabel, realLabel, facts: [[k, v]], note, extra}
+      function renderVerdict(opts) {
+        var conf = Math.max(opts.fakeProb, opts.realProb);
+        var facts = (opts.facts || []).map(function (f) {
+          return '<div><dt>' + escapeHtml(f[0]) + '</dt><dd>' + escapeHtml(f[1]) + '</dd></div>';
+        }).join('');
 
+        return '' +
+          '<div class="verdict ' + (opts.isFake ? 'is-fake' : 'is-real') + '">' +
+            '<span class="stamp">' + escapeHtml(strength(conf)) + ' confidence</span>' +
+            '<p class="verdict-word">' + escapeHtml(opts.word) + '</p>' +
+            '<p class="verdict-sub">The model leans this way with <span class="num">' + pct(conf) + '</span> probability.</p>' +
+            '<div class="meter" role="img" aria-label="' + escapeHtml(opts.fakeLabel + ' ' + pct(opts.fakeProb) + ', ' + opts.realLabel + ' ' + pct(opts.realProb)) + '">' +
+              '<div class="meter-track">' +
+                '<div class="meter-fill" style="width:' + (opts.realProb * 100).toFixed(1) + '%"></div>' +
+                '<div class="meter-mid"></div>' +
+              '</div>' +
+              '<div class="meter-scale">' +
+                '<span>' + escapeHtml(opts.fakeLabel) + ' <b>' + pct(opts.fakeProb) + '</b></span>' +
+                '<span><b>' + pct(opts.realProb) + '</b> ' + escapeHtml(opts.realLabel) + '</span>' +
+              '</div>' +
+            '</div>' +
+            (facts ? '<dl class="facts">' + facts + '</dl>' : '') +
+            (opts.extra || '') +
+            (opts.note ? '<p class="note">' + escapeHtml(opts.note) + '</p>' : '') +
+          '</div>';
+      }
+
+      // Put a result (or message) into step 2 and update the step markers.
+      // prefix is "news" or "image"; done marks step 1 as complete.
+      function showResult(prefix, html, done) {
+        var box = $(prefix + '-result');
+        box.innerHTML = html;
+        $(prefix + '-step-1').classList.toggle('done', !!done);
+        $(prefix + '-step-2').classList.remove('waiting');
+        $(prefix + '-step-2').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+
+      function resetResult(prefix, msg) {
+        $(prefix + '-result').innerHTML = '<p class="empty">' + escapeHtml(msg) + '</p>';
+        $(prefix + '-step-1').classList.remove('done');
+        $(prefix + '-step-2').classList.add('waiting');
+      }
+
+      // ── Date line ───────────────────────────────────────
       try {
-        var response = await fetch('/predict_image', { method: 'POST', body: form });
-        var data = await response.json();
+        $('today').textContent = new Date().toLocaleDateString(undefined, {
+          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+      } catch (e) { /* ignore */ }
 
-        if (data.error) {
-          alert(data.error);
+      // ── Tabs ────────────────────────────────────────────
+      var tabs = document.querySelectorAll('.choice');
+
+      function showTab(name, focus) {
+        tabs.forEach(function (t) {
+          var on = t.dataset.tab === name;
+          t.setAttribute('aria-selected', on ? 'true' : 'false');
+          t.tabIndex = on ? 0 : -1;
+          $('panel-' + t.dataset.tab).hidden = !on;
+          if (on && focus) t.focus();
+        });
+        try { localStorage.setItem('truthlens-tab', name); } catch (e) { /* private mode */ }
+      }
+
+      tabs.forEach(function (t, i) {
+        t.addEventListener('click', function () { showTab(t.dataset.tab); });
+        t.addEventListener('keydown', function (e) {
+          if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+          var next = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+          showTab(next.dataset.tab, true);
+        });
+      });
+
+      // ── News ────────────────────────────────────────────
+      var newsText = $('news-text');
+      var newsResult = $('news-result');
+      var checkBtn = $('check-btn');
+
+      function updateCount() {
+        var words = newsText.value.trim() ? newsText.value.trim().split(/\s+/).length : 0;
+        $('news-count').textContent = words + (words === 1 ? ' word' : ' words');
+      }
+
+      function renderNews(data) {
+        if (data.prediction !== 'FAKE' && data.prediction !== 'REAL') {
+          showResult('news', alertBox(data.error || 'The model could not reach a verdict on this text.'));
           return;
         }
-
-        var box = document.getElementById('image-result');
-        var isAI = data.prediction === 'AI GENERATED';
-
-        box.className = data.result_class;
-        box.style.display = 'block';
-        document.getElementById('image-icon').textContent = isAI ? '🤖' : '📷';
-        document.getElementById('image-verdict').textContent = data.prediction;
-
-        var realPct = (data.real_prob * 100).toFixed(1);
-        var fakePct = (data.fake_prob * 100).toFixed(1);
-        document.getElementById('image-real-pct').textContent = realPct + '%';
-        document.getElementById('image-fake-pct').textContent = fakePct + '%';
-        document.getElementById('image-real-bar').style.width = realPct + '%';
-        document.getElementById('image-fake-bar').style.width = fakePct + '%';
-
-        box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      } catch (err) {
-        alert('Could not reach the server. Is it still running?');
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = original;
+        var isFake = data.prediction === 'FAKE';
+        var words = newsText.value.trim().split(/\s+/).length;
+        showResult('news', '<div class="result-box">' + renderVerdict({
+          isFake: isFake,
+          word: isFake ? 'Likely fake' : 'Likely real',
+          fakeProb: data.fake_prob,
+          realProb: data.real_prob,
+          fakeLabel: 'Fake',
+          realLabel: 'Real',
+          facts: [['Words analysed', String(words)]]
+        }) + '</div>', true);
       }
-    }
 
+      async function checkNews() {
+        var text = newsText.value.trim();
+        if (!text) {
+          showResult('news', alertBox('The box is empty. Paste an article in step 1 first, or click “Load an article from the internet”.'));
+          newsText.focus();
+          return;
+        }
+        setBusy(checkBtn, true, 'Checking…');
+        try {
+          var res = await fetch('/predict', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: text })
+          });
+          renderNews(await res.json());
+        } catch (err) {
+          showResult('news', alertBox('Could not reach the server. Is it still running?', 'error'));
+        } finally {
+          setBusy(checkBtn, false);
+        }
+      }
+
+      $('news-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        checkNews();
+      });
+
+      newsText.addEventListener('input', function () {
+        updateCount();
+        // Edited text means the shown verdict no longer applies.
+        if ($('news-step-1').classList.contains('done')) {
+          resetResult('news', 'Text changed. Press “Check this article” to check it again.');
+        }
+      });
+      newsText.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+          e.preventDefault();
+          checkNews();
+        }
+      });
+
+      $('clear-btn').addEventListener('click', function () {
+        newsText.value = '';
+        updateCount();
+        resetResult('news', 'The result will show up here after you press “Check this article”.');
+        newsText.focus();
+      });
+
+      $('fetch-btn').addEventListener('click', async function () {
+        var btn = this;
+        setBusy(btn, true, 'Loading…');
+        try {
+          var res = await fetch('/fetch_news');
+          var data = await res.json();
+          var news = typeof data.news === 'string' ? data.news.trim() : '';
+          newsText.value = news || 'Unable to fetch news.';
+          updateCount();
+          resetResult('news', 'Article loaded into the box. Now press “Check this article”.');
+          checkBtn.focus();
+        } catch (err) {
+          showResult('news', alertBox('Could not load an article from the internet.', 'error'));
+        } finally {
+          setBusy(btn, false);
+        }
+      });
+
+      updateCount();
+
+      // Server-rendered result (no-JS form POST, or the /fake route).
+      var initial = {{ {
+        "prediction": result_text,
+        "fake_prob": (fake_prob / 100) if fake_prob is not none else none,
+        "real_prob": (real_prob / 100) if real_prob is not none else none
+      }|tojson }};
+
+      if (initial.prediction) {
+        if (initial.fake_prob !== null) {
+          renderNews(initial);
+        } else {
+          showResult('news', alertBox(initial.prediction));
+        }
+        showTab('news');
+      } else {
+        try {
+          var saved = localStorage.getItem('truthlens-tab');
+          showTab(saved === 'image' ? 'image' : 'news');
+        } catch (e) { showTab('news'); }
+      }
+
+      // ── Image ───────────────────────────────────────────
+      var drop = $('drop');
+      var input = $('image-input');
+      var imageResult = $('image-result');
+      var analyseBtn = $('analyse-btn');
+      var selected = null;
+
+      ['dragenter', 'dragover'].forEach(function (evt) {
+        drop.addEventListener(evt, function (e) { e.preventDefault(); drop.classList.add('over'); });
+      });
+      ['dragleave', 'drop'].forEach(function (evt) {
+        drop.addEventListener(evt, function (e) { e.preventDefault(); drop.classList.remove('over'); });
+      });
+      drop.addEventListener('drop', function (e) {
+        if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+      });
+      input.addEventListener('change', function () {
+        if (input.files.length) handleFile(input.files[0]);
+      });
+      $('replace-btn').addEventListener('click', function () { input.click(); });
+
+      function handleFile(file) {
+        if (!file.type.startsWith('image/')) {
+          showResult('image', alertBox('That file is not an image. Please choose a JPG, PNG or WebP.', 'error'));
+          return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+          showResult('image', alertBox('That image is larger than 10 MB. Please choose a smaller one.', 'error'));
+          return;
+        }
+        selected = file;
+
+        var img = $('preview');
+        if (img.dataset.url) URL.revokeObjectURL(img.dataset.url);
+        img.dataset.url = URL.createObjectURL(file);
+        img.onload = function () {
+          $('fig-meta').textContent = img.naturalWidth + '×' + img.naturalHeight +
+            ' · ' + (file.size / 1024).toFixed(0) + ' KB';
+        };
+        img.src = img.dataset.url;
+        $('fig-name').textContent = file.name;
+
+        drop.hidden = true;
+        $('figure').hidden = false;
+        $('image-actions').hidden = false;
+        resetResult('image', 'Image ready. Now press “Check this image”.');
+        analyseBtn.focus();
+      }
+
+      analyseBtn.addEventListener('click', async function () {
+        if (!selected) return;
+        setBusy(analyseBtn, true, 'Checking…');
+
+        var form = new FormData();
+        form.append('image', selected);
+
+        try {
+          var res = await fetch('/predict_image', { method: 'POST', body: form });
+          var data = await res.json();
+          if (data.error) {
+            showResult('image', alertBox(data.error, 'error'));
+            return;
+          }
+          var isFake = data.prediction === 'AI GENERATED';
+          showResult('image', '<div class="result-box">' + renderVerdict({
+            isFake: isFake,
+            word: isFake ? 'Likely AI-generated' : 'Likely a real photo',
+            fakeProb: data.fake_prob,
+            realProb: data.real_prob,
+            fakeLabel: 'AI',
+            realLabel: 'Photo',
+            extra: data.low_resolution
+              ? alertBox('This image is smaller than 224 pixels on one side, so it had to be enlarged before analysis. Treat this result with caution.')
+              : data.out_of_distribution
+                ? alertBox('This image is much larger than the images the model was trained on (32×32). It was shrunk heavily before analysis, so treat this result with caution.')
+                : ''
+          }) + '</div>', true);
+        } catch (err) {
+          showResult('image', alertBox('Could not reach the server. Is it still running?', 'error'));
+        } finally {
+          setBusy(analyseBtn, false);
+        }
+      });
+    })();
   </script>
-
 </body>
 
 </html>

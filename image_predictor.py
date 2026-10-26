@@ -3,8 +3,14 @@ image_predictor.py
 ==================
 Inference wrapper for the AI-generated-image detector.
 
-Loaded lazily so app.py still starts (with the image tab disabled) when the
-model has not been trained yet.
+Two backends, picked at load time:
+  - "clip"   (preferred) frozen CLIP ViT-L/14 + trained head, from
+             train_clip_head.py. Analyses 224x224 crops at native resolution,
+             so 512px+ uploads are examined pixel-for-pixel.
+  - "resnet" (fallback) the 32x32 CIFAKE ResNet-18 from train_image_model.py.
+
+Loaded lazily so app.py still starts (with the image tab disabled) when no
+model has been trained yet.
 """
 
 import io
@@ -15,91 +21,150 @@ import torch
 import torch.nn.functional as F
 from PIL import Image
 
-from image_model import ARCHITECTURES
-
 ROOT = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(ROOT, "ai_image_model", "image_model.pt")
-IMG_SIZE = 32
+CLIP_HEAD_PATH = os.path.join(ROOT, "ai_image_model", "clip_head.pt")
+RESNET_PATH = os.path.join(ROOT, "ai_image_model", "image_model.pt")
+RESNET_SIZE = 32
 
-_state = {"model": None, "mean": None, "std": None, "meta": None}
+# Uploads are shrunk to this short side before cropping. The training images
+# top out at 1024px; a 4000px phone photo cropped at native resolution would
+# show the head sensor-level detail it never saw in training.
+MAX_SHORT_SIDE = 1024
+
+_state = {"backend": None, "model": None, "head": None, "mean": None, "std": None,
+          "temperature": 1.0, "meta": None, "device": "cpu"}
 
 
 def is_available():
-    return os.path.isfile(MODEL_PATH)
+    return os.path.isfile(CLIP_HEAD_PATH) or os.path.isfile(RESNET_PATH)
 
 
 def load_model(device="cpu"):
-    if _state["model"] is not None:
-        return _state["model"]
-    if not is_available():
+    if _state["backend"] is not None:
+        return
+    if os.path.isfile(CLIP_HEAD_PATH):
+        _load_clip(device)
+    elif os.path.isfile(RESNET_PATH):
+        _load_resnet(device)
+    else:
         raise FileNotFoundError(
-            "ai_image_model/image_model.pt not found. Run: python train_image_model.py"
+            "No image model found. Run: python train_clip_head.py "
+            "(or python train_image_model.py for the 32x32 baseline)"
         )
 
-    ckpt = torch.load(MODEL_PATH, map_location=device, weights_only=False)
+
+def _load_clip(device):
+    from clip_features import load_clip
+    from train_clip_head import make_head
+
+    ckpt = torch.load(CLIP_HEAD_PATH, map_location="cpu", weights_only=False)
+    head = make_head(ckpt["head"])
+    head.load_state_dict(ckpt["state_dict"])
+    metrics = ckpt.get("metrics", {})
+    _state.update({
+        "backend": "clip",
+        "model": load_clip(device),
+        "head": head.to(device).eval(),
+        "temperature": float(ckpt.get("temperature", 1.0)),
+        "device": device,
+        "meta": {"arch": f"CLIP ViT-L/14 + {ckpt['head']} head",
+                 "test_accuracy": metrics.get("test_accuracy"),
+                 "device": device},
+    })
+
+
+def _load_resnet(device):
+    from image_model import ARCHITECTURES
+
+    ckpt = torch.load(RESNET_PATH, map_location=device, weights_only=False)
     model = ARCHITECTURES[ckpt["arch"]]()
     model.load_state_dict(ckpt["state_dict"])
-    model.eval().to(device)
-
     _state.update({
-        "model": model,
+        "backend": "resnet",
+        "model": model.eval().to(device),
         "mean": ckpt["mean"].to(device),
         "std": ckpt["std"].to(device),
+        "device": device,
         "meta": {"arch": ckpt["arch"],
                  "test_accuracy": ckpt.get("test_accuracy"),
                  "device": device},
     })
-    return model
 
 
 def metadata():
     return _state["meta"] or {}
 
 
-def preprocess(image):
-    """Centre-crop to square, then resize to the 32x32 the model was trained on.
-
-    Cropping before resizing avoids squashing the aspect ratio of a photo, which
-    would introduce distortions the model never saw in training.
-    """
-    image = image.convert("RGB")
-    w, h = image.size
-    side = min(w, h)
-    left, top = (w - side) // 2, (h - side) // 2
-    image = image.crop((left, top, left + side, top + side))
-    image = image.resize((IMG_SIZE, IMG_SIZE), Image.BICUBIC)
-
-    # np.array (not asarray) gives a writable copy, which torch.from_numpy wants.
-    tensor = torch.from_numpy(
-        np.array(image, dtype=np.uint8)
-    ).permute(2, 0, 1).float().unsqueeze(0) / 255.0
-    return tensor, (w, h)
-
-
-def predict(image_bytes, device="cpu"):
+def predict(image_bytes, device=None):
     """Return (label, css_class, confidence, fake_prob, real_prob, info)."""
-    model = load_model(device)
+    load_model(device or "cpu")
     image = Image.open(io.BytesIO(image_bytes))
-    tensor, original_size = preprocess(image)
+    image.load()
 
-    tensor = ((tensor.to(device) - _state["mean"]) / _state["std"])
-    with torch.no_grad():
-        probs = F.softmax(model(tensor), dim=1)[0]
-
-    fake_prob = float(probs[0].item())
-    real_prob = float(probs[1].item())
+    if _state["backend"] == "clip":
+        fake_prob, real_prob, info = _predict_clip(image)
+    else:
+        fake_prob, real_prob, info = _predict_resnet(image)
 
     if real_prob > fake_prob:
         label, css = "REAL PHOTO", "result-real"
     else:
         label, css = "AI GENERATED", "result-fake"
+    return label, css, max(real_prob, fake_prob), fake_prob, real_prob, info
+
+
+def _predict_clip(image):
+    from clip_features import CROP, crops_tensor, embed
+
+    image = image.convert("RGB")
+    w, h = image.size
+    work = image
+    if min(w, h) > MAX_SHORT_SIDE:
+        scale = MAX_SHORT_SIDE / min(w, h)
+        work = image.resize((round(w * scale), round(h * scale)), Image.LANCZOS)
+
+    # 3x3 grid when there is room for distinct crops, else corners + centre.
+    grid = 3 if min(work.size) >= 2 * CROP else 2
+    crops = crops_tensor(work, grid=grid)
+    feats = embed(_state["model"], crops)
+    with torch.no_grad():
+        probs = F.softmax(_state["head"](feats), dim=-1).mean(0)
+        # Same calibration as train_clip_head.py: temperature on log mean prob.
+        probs = F.softmax(probs.clamp_min(1e-6).log() / _state["temperature"], dim=-1)
 
     info = {
-        "original_size": f"{original_size[0]}x{original_size[1]}",
-        "downscaled_to": f"{IMG_SIZE}x{IMG_SIZE}",
-        # The model was trained only on 32x32 CIFAKE images. A large upload is
-        # far outside that distribution, so flag it rather than quietly
-        # reporting a confident number.
-        "out_of_distribution": min(original_size) > 128,
+        "original_size": f"{w}x{h}",
+        "analysed_as": f"{len(crops)} crops of {CROP}x{CROP}"
+                       + (f" from {work.size[0]}x{work.size[1]}" if work is not image
+                          else " at full resolution"),
+        "low_resolution": min(w, h) < CROP,
+        "backend": "clip",
     }
-    return label, css, max(real_prob, fake_prob), fake_prob, real_prob, info
+    return float(probs[0]), float(probs[1]), info
+
+
+def _predict_resnet(image):
+    """Centre-crop to square, then resize to the 32x32 the model was trained on."""
+    image = image.convert("RGB")
+    w, h = image.size
+    side = min(w, h)
+    left, top = (w - side) // 2, (h - side) // 2
+    small = image.crop((left, top, left + side, top + side)).resize(
+        (RESNET_SIZE, RESNET_SIZE), Image.BICUBIC)
+
+    # np.array (not asarray) gives a writable copy, which torch.from_numpy wants.
+    tensor = torch.from_numpy(np.array(small, dtype=np.uint8)).permute(2, 0, 1)
+    tensor = tensor.float().unsqueeze(0).to(_state["device"]) / 255.0
+    tensor = (tensor - _state["mean"]) / _state["std"]
+    with torch.no_grad():
+        probs = F.softmax(_state["model"](tensor), dim=1)[0]
+
+    info = {
+        "original_size": f"{w}x{h}",
+        "analysed_as": f"shrunk to {RESNET_SIZE}x{RESNET_SIZE}",
+        # Trained only on 32x32 CIFAKE images; large uploads are far outside that.
+        "low_resolution": False,
+        "out_of_distribution": min(w, h) > 128,
+        "backend": "resnet",
+    }
+    return float(probs[0]), float(probs[1]), info

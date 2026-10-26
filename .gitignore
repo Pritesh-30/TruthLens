@@ -12,6 +12,8 @@ news_dataset.csv
 archive/
 archive*.zip
 image_cache/
+genimage/
+genimage_raw/
 
 # ── Model weights ────────────────────────────────────────
 # DistilBERT weights are 256 MB, over GitHub's 100 MB file limit.

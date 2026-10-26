@@ -80,11 +80,12 @@ except (OSError, ValueError, KeyError):
     print("No calibration.json found - run: python calibrate_model.py")
 print("Transformer model loaded successfully")
 
-# The image detector runs on CPU: a 32x32 ResNet-18 forward pass is
-# sub-millisecond, and it keeps the GPU free.
+# The CLIP image detector runs ViT-L/14 over up to 9 crops per upload: well
+# under a second on the GPU, several seconds on a laptop CPU.
+IMAGE_DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 IMAGE_MODEL_READY = image_predictor.is_available()
 if IMAGE_MODEL_READY:
-    image_predictor.load_model("cpu")
+    image_predictor.load_model(IMAGE_DEVICE)
     _meta = image_predictor.metadata()
     print(f"Image model loaded: {_meta.get('arch')} "
           f"(test accuracy {(_meta.get('test_accuracy') or 0) * 100:.2f}%)")
@@ -267,7 +268,7 @@ def predict_image_route():
         return jsonify({"error": "Image too large (max 10 MB)"}), 413
 
     try:
-        label, css, conf, p_fake, p_real, info = image_predictor.predict(data, "cpu")
+        label, css, conf, p_fake, p_real, info = image_predictor.predict(data, IMAGE_DEVICE)
     except Exception as exc:
         print(f"Image prediction error: {exc}")
         return jsonify({"error": "Could not read that image file"}), 400

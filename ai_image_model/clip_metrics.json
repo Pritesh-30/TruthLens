@@ -1,0 +1,27 @@
+{
+  "head": "mlp",
+  "clip_model": "openai/clip-vit-large-patch14",
+  "crop": 224,
+  "val_accuracy": 0.9675090312957764,
+  "temperature": 0.5099188089370728,
+  "test_accuracy": 0.9891287684440613,
+  "test_per_generator": {
+    "ADM": 0.994,
+    "GLIDE": 0.988,
+    "Midjourney": 0.994,
+    "Real": 0.98371619656877,
+    "SD15": 1.0,
+    "VQDM": 0.996,
+    "Wukong": 1.0
+  },
+  "test_jpeg75_accuracy": 0.9638142585754395,
+  "test_jpeg75_per_generator": {
+    "ADM": 0.942,
+    "GLIDE": 0.976,
+    "Midjourney": 0.952,
+    "Real": 0.9779005524861878,
+    "SD15": 0.978,
+    "VQDM": 0.922,
+    "Wukong": 0.916
+  }
+}
